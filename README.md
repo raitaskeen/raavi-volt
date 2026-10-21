@@ -16,7 +16,7 @@ Monochrome base (matte black · charcoal · white · paper white) with two elect
 | Type | Archivo (expanded display, variable width axis) · Geist (UI) · Geist Mono (labels) via `next/font` |
 | Animation | Motion (Framer Motion) with `LazyMotion` + `domAnimation` (~15 kB) |
 | Data | Cloudflare **D1** (SQLite) — products & orders |
-| Media | Cloudflare **R2** — product images (public, immutable cache) & payment screenshots (private) |
+| Media | Stored in **D1** (free, no card) — product images (public, immutable cache) & payment screenshots (private); optional R2 for very large catalogs |
 | Validation | Zod v4 (server-side, every action) |
 | Cart | Zustand + localStorage |
 
@@ -51,7 +51,7 @@ Monochrome base (matte black · charcoal · white · paper white) with two elect
 - Every message logged per order with free/template, delivered/read receipts, and the customer's own messages; one-tap **Send manually** fallback
 
 **Production hardening**
-- Workers Rate Limiting on login, checkout, payment submit and order lookup
+- Rate limiting (D1-backed, free) on login, checkout, payment submit, contact and order lookup
 - Unpaid orders auto-cancel and restock after 72 h (`orderHoldHours`)
 - HSTS, nosniff, frame, referrer and permissions headers; admin routes and payment proofs require a signed session
 - Above-the-fold content uses CSS entrance animations (paints before JS); `LazyMotion` for the rest; reduced-motion respected
@@ -68,7 +68,7 @@ Open http://localhost:3000 for the store and http://localhost:3000/admin for the
 `bun run local` is safe to re-run — migrations are tracked and the seed skips existing products.
 After the first run, plain `bun run dev` is enough. Port busy? `bun run dev -- -p 3100`.
 
-`next dev` gets real D1/R2 bindings through Wrangler's local emulation (state in `.wrangler/`).
+`next dev` gets real D1 bindings through Wrangler's local emulation (state in `.wrangler/`).
 To run the exact production Worker bundle locally in workerd instead, use `bun run preview`.
 
 > **Windows tip:** if local D1 fails with `SQLITE_CANTOPEN`, your folder path is too long. Use a short state dir:
@@ -76,10 +76,23 @@ To run the exact production Worker bundle locally in workerd instead, use `bun r
 
 ## Deploy to Cloudflare Workers
 
+Runs entirely on the **free plan** — only Workers + D1, which have hard free limits (requests fail
+rather than being billed) and need no card. Product images and payment proofs are stored in D1.
+
+**Cloudflare Workers Builds (connected to this GitHub repo)** — every push to `main` deploys:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `bunx opennextjs-cloudflare build` |
+| Deploy command | `bunx wrangler d1 migrations apply DB --remote && bunx opennextjs-cloudflare deploy` |
+| Non-production branch command | `bunx opennextjs-cloudflare upload` |
+
+Then in the Worker → *Settings → Variables and Secrets*, add `ADMIN_PASSWORD` and `SESSION_SECRET` as **Secrets**.
+
+**Or from your machine:**
+
 ```bash
 bunx wrangler login
-bunx wrangler d1 create raavi-volt-db        # copy the database_id into wrangler.jsonc
-bunx wrangler r2 bucket create raavi-volt-media
 bunx wrangler secret put ADMIN_PASSWORD
 bunx wrangler secret put SESSION_SECRET      # any random 32+ char string
 bun run db:migrate:remote
@@ -87,8 +100,7 @@ bun run db:seed:remote                       # optional starter catalog
 bun run deploy
 ```
 
-Or push to `main` and let **GitHub Actions** deploy (`.github/workflows/deploy.yml`) — add `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets.
-The OpenNext build is verified on Windows as well — `bun run preview` runs the real Worker bundle locally in workerd.
+`bun run preview` runs the real Worker bundle locally in workerd (verified on Windows too).
 
 ## Make it yours
 
@@ -110,7 +122,7 @@ src/
   app/
     (store)/            storefront: home, shop, product/[slug], cart, checkout, order/[code]
     admin/              login, (panel)/ dashboard, products, orders, api/upload, proof/
-    media/[...key]      public R2 image route (edge-cached, immutable)
+    media/[...key]      public image route (immutable, ETag / 304)
   components/ui         shadcn/ui primitives
   components/site       storefront components
   components/admin      admin components

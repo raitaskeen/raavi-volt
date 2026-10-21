@@ -49,7 +49,8 @@ I can add a bulk importer so you don't type 100 products into the admin.
 
 ## 5. Accounts & access (you create these; I can't create accounts for you)
 - [ ] **Cloudflare** account — the **free plan works** (see “Running on free plans” below)
-- [ ] 🔒 `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` → GitHub repo → *Settings → Secrets → Actions*
+- [x] Cloudflare Workers Builds connected to the GitHub repo (auto-deploys `main`)
+- [x] D1 database `raavi-volt-db` created
 - [ ] 🔒 Admin password → `bunx wrangler secret put ADMIN_PASSWORD`
 - [ ] 🔒 Session secret (any long random string) → `bunx wrangler secret put SESSION_SECRET`
 - [ ] **Meta / WhatsApp Business** — verified Business account, a dedicated WhatsApp number,
@@ -86,7 +87,7 @@ I can add a bulk importer so you don't type 100 products into the admin.
 | Requests | 100,000 / day | plenty for a new store |
 | CPU per request | 10 ms | usually fine; if the dashboard shows "exceeded CPU" errors under load, upgrade to Workers Paid ($5/mo) |
 | D1 database | 5 GB, 5M reads / day | ✓ |
-| R2 images | 10 GB free | Cloudflare asks for a card to *enable* R2; usage inside the free tier is not charged |
+| Images & payment proofs | stored in D1 | no R2, no card — nothing can be billed |
 
 **WhatsApp (free option)**
 
