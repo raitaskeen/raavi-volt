@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cfEnv } from "@/lib/cf";
 
-const COOKIE = "rv_admin";
+// __Host- prefix (production): cookie is HTTPS-only, path=/, and locked to this exact host.
+const COOKIE = process.env.NODE_ENV === "production" ? "__Host-rv_admin" : "rv_admin";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 const enc = new TextEncoder();
 

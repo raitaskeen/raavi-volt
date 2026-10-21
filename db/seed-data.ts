@@ -320,6 +320,30 @@ export const seedProducts: Seed[] = [
     warranty: "6 months brand warranty",
   },
 
+  {
+    name: "Geepas 20000mAh Fast-Charge Power Bank",
+    brand: "Geepas",
+    category: "electronics",
+    price: 6_299,
+    compareAt: 6_999,
+    stock: 25,
+    short: "Charge a phone 4–5 times. USB-C PD in and out.",
+    description: "High-capacity power bank with 22.5W fast charging, USB-C power delivery and a digital battery display — ideal for load-shedding and travel.",
+    specs: [["Capacity", "20,000 mAh"], ["Output", "22.5 W max"], ["Ports", "USB-C PD, 2× USB-A"], ["Display", "Digital %"]],
+    warranty: "6 months brand warranty",
+  },
+  {
+    name: "Geepas True Wireless Earbuds",
+    brand: "Geepas",
+    category: "electronics",
+    price: 4_499,
+    stock: 0,
+    short: "Bluetooth 5.3, touch controls, 24h with case.",
+    description: "Lightweight earbuds with clear calls, touch controls and a pocket charging case. (Sample item kept sold out to test the sold-out flow.)",
+    specs: [["Bluetooth", "5.3"], ["Playtime", "6 h + 18 h case"], ["Charging", "USB-C"]],
+    warranty: "6 months brand warranty",
+  },
+
   // Tools
   {
     name: "Black+Decker 18V Cordless Drill Driver",
@@ -341,6 +365,18 @@ export const seedProducts: Seed[] = [
     short: "Hammer & drill modes for brick and concrete.",
     description: "Corded impact drill with reversible speed control and depth gauge.",
     specs: [["Power", "650 W"], ["Modes", "Drill / hammer"], ["Chuck", "13 mm"]],
+    warranty: "1 year brand warranty",
+  },
+  {
+    name: "Geepas Cordless Screwdriver Set",
+    brand: "Geepas",
+    category: "tools",
+    price: 3_999,
+    compareAt: 4_599,
+    stock: 3,
+    short: "4V rechargeable with 30 bits and LED work light.",
+    description: "Compact cordless screwdriver for furniture assembly and quick fixes, with forward/reverse, LED light and a 30-piece bit set in a carry case.",
+    specs: [["Voltage", "4 V"], ["Bits", "30 pieces"], ["Charging", "USB"], ["Extras", "LED light"]],
     warranty: "1 year brand warranty",
   },
 ];

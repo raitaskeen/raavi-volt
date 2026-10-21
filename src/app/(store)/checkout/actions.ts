@@ -5,6 +5,7 @@ import { createOrder, expireStaleOrders, getOrderByCode, OrderError, submitPayme
 import { rateLimit } from "@/lib/rate-limit";
 import { orderHoldHours } from "@/config/store";
 import { putFile } from "@/lib/storage";
+import { extensionFor, sniffFileType } from "@/lib/file-type";
 import { revalidatePath } from "next/cache";
 
 export type CheckoutState = { ok: true; code: string } | { ok: false; errors?: FieldErrors; message?: string } | null;
@@ -52,7 +53,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
 export type PaymentState = { ok: true } | { ok: false; errors?: FieldErrors; message?: string } | null;
 
 const MAX_PROOF_BYTES = 5 * 1024 * 1024;
-const PROOF_TYPES: Record<string, string> = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png" };
+const PROOF_TYPES = new Set(["image/webp", "image/jpeg", "image/png"]);
 
 export async function submitPaymentAction(_prev: PaymentState, formData: FormData): Promise<PaymentState> {
   const parsed = paymentSchema.safeParse({
@@ -71,11 +72,13 @@ export async function submitPaymentAction(_prev: PaymentState, formData: FormDat
   let proofKey: string | null = null;
   const file = formData.get("proof");
   if (file instanceof File && file.size > 0) {
-    const ext = PROOF_TYPES[file.type];
-    if (!ext) return { ok: false, errors: { proof: "Upload a JPG, PNG or WebP image" } };
     if (file.size > MAX_PROOF_BYTES) return { ok: false, errors: { proof: "Image must be under 5 MB" } };
-    proofKey = `proofs/${code}/${crypto.randomUUID()}.${ext}`;
-    await putFile(proofKey, await file.arrayBuffer(), file.type);
+    // Check the real file contents, not the browser-declared type.
+    const bytes = await file.arrayBuffer();
+    const type = sniffFileType(bytes);
+    if (!type || !PROOF_TYPES.has(type)) return { ok: false, errors: { proof: "Upload a JPG, PNG or WebP image" } };
+    proofKey = `proofs/${code}/${crypto.randomUUID()}.${extensionFor[type]}`;
+    await putFile(proofKey, bytes, type);
   }
 
   const updated = await submitPayment(code, paymentRef, paymentPayer, proofKey);

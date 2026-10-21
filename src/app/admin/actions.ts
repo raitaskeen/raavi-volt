@@ -9,7 +9,7 @@ export type LoginState = { error: string } | null;
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const password = String(formData.get("password") ?? "");
   if (!password) return { error: "Enter the admin password." };
-  if (!(await rateLimit("login"))) return { error: "Too many attempts. Wait a minute and try again." };
+  if (!(await rateLimit("login", 5))) return { error: "Too many attempts. Wait a minute and try again." };
   if (!(await verifyPassword(password))) {
     // Small fixed delay blunts brute-force attempts.
     await new Promise((r) => setTimeout(r, 600));

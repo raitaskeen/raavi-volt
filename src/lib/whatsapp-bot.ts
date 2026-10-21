@@ -5,6 +5,7 @@
  */
 import { db } from "@/lib/cf";
 import { putFile } from "@/lib/storage";
+import { extensionFor, sniffFileType } from "@/lib/file-type";
 import { couriers, paymentAccounts, statusLabel, store, type OrderStatus } from "@/config/store";
 import {
   getOrderByCode,
@@ -98,7 +99,6 @@ function paymentInstructions(order: Order) {
     .join("\n");
 }
 
-const PAY_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "application/pdf": "pdf" };
 
 /* ----------------------------- inbound message ---------------------------- */
 
@@ -168,9 +168,14 @@ async function handleMessage(m: InboundMessage, profileName: string | null) {
       return;
     }
     const file = await downloadMedia(mediaId);
-    const ext = PAY_EXT[file.mimeType] ?? "jpg";
-    const key = `proofs/${order.code}/${crypto.randomUUID()}.${ext}`;
-    await putFile(key, file.bytes, file.mimeType);
+    const type = sniffFileType(file.bytes);
+    if (!type || file.bytes.byteLength > 8 * 1024 * 1024) {
+      await reply(waId, `Sorry, I couldn't read that file. Please send the payment screenshot as a photo (JPG/PNG) or a PDF under 8 MB.`, ref);
+      await markReplied();
+      return;
+    }
+    const key = `proofs/${order.code}/${crypto.randomUUID()}.${extensionFor[type]}`;
+    await putFile(key, file.bytes, type);
     const tid = text.match(TID_RE)?.[1] ?? order.paymentRef ?? "WhatsApp screenshot";
     // Triggers the "payment received" reply to the customer and the owner alert.
     await submitPayment(order.code, tid, profileName ?? order.customerName, key);

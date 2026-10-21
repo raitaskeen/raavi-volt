@@ -50,7 +50,17 @@ Monochrome base (matte black · charcoal · white · paper white) with two elect
 - **Owner commands** from your personal WhatsApp: `orders`, `status`, `confirm`, `ship RV-… TCS 123`, `deliver`, `cancel`
 - Every message logged per order with free/template, delivered/read receipts, and the customer's own messages; one-tap **Send manually** fallback
 
+**Edge caching** (`worker.ts`, active on the custom domain)
+- Home, shop, product and info pages — and their client-navigation (RSC) payloads — are served from the Cloudflare Cache API: no rendering and no D1 work on a hit
+- Cache keys include a catalog version that a D1 trigger bumps on every product change (edits, prices, stock after an order), so changes appear instantly everywhere; stale copies are refreshed in the background
+- Never cached: admin, cart, checkout, order pages, API; signed-in admins always see live pages; tracking params (`utm_*`, `fbclid`…) don't fragment the cache
+- `x-rv-cache: HIT | MISS | STALE` response header for checking
+
 **Production hardening**
+- Content-Security-Policy (same-origin only, no framing, no plugins, forms post only to the site), `X-Frame-Options: DENY`, `Cross-Origin-Opener-Policy`, strict `Permissions-Policy`
+- Admin, order and API responses: `no-store` + `noindex`
+- Admin session cookie uses the `__Host-` prefix (HTTPS-only, locked to the exact host); login limited to 5 attempts / minute / IP
+- Uploads and WhatsApp payment files are accepted by their real file signature (JPEG / PNG / WebP / AVIF / PDF), not the declared type
 - Rate limiting (D1-backed, free) on login, checkout, payment submit, contact and order lookup
 - Unpaid orders auto-cancel and restock after 72 h (`orderHoldHours`)
 - HSTS, nosniff, frame, referrer and permissions headers; admin routes and payment proofs require a signed session
