@@ -1,5 +1,5 @@
 import { isAdmin } from "@/lib/auth";
-import { media } from "@/lib/cf";
+import { getFile } from "@/lib/storage";
 
 /** Private payment screenshots — admin only, never cached publicly. */
 export async function GET(_request: Request, { params }: { params: Promise<{ key: string[] }> }) {
@@ -7,12 +7,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
   const key = (await params).key.join("/");
   if (!key.startsWith("proofs/")) return new Response("Not found", { status: 404 });
 
-  const object = await media().get(key);
-  if (!object) return new Response("Not found", { status: 404 });
-  return new Response(object.body as unknown as ReadableStream, {
-    headers: {
-      "Content-Type": object.httpMetadata?.contentType ?? "image/webp",
-      "Cache-Control": "private, no-store",
-    },
+  const file = await getFile(key);
+  if (!file) return new Response("Not found", { status: 404 });
+  return new Response(file.bytes, {
+    headers: { "Content-Type": file.contentType, "Cache-Control": "private, no-store" },
   });
 }

@@ -4,7 +4,7 @@ import { checkoutSchema, fieldErrors, paymentSchema, type FieldErrors } from "@/
 import { createOrder, expireStaleOrders, getOrderByCode, OrderError, submitPayment } from "@/lib/orders";
 import { rateLimit } from "@/lib/rate-limit";
 import { orderHoldHours } from "@/config/store";
-import { media } from "@/lib/cf";
+import { putFile } from "@/lib/storage";
 import { revalidatePath } from "next/cache";
 
 export type CheckoutState = { ok: true; code: string } | { ok: false; errors?: FieldErrors; message?: string } | null;
@@ -75,7 +75,7 @@ export async function submitPaymentAction(_prev: PaymentState, formData: FormDat
     if (!ext) return { ok: false, errors: { proof: "Upload a JPG, PNG or WebP image" } };
     if (file.size > MAX_PROOF_BYTES) return { ok: false, errors: { proof: "Image must be under 5 MB" } };
     proofKey = `proofs/${code}/${crypto.randomUUID()}.${ext}`;
-    await media().put(proofKey, await file.arrayBuffer(), { httpMetadata: { contentType: file.type } });
+    await putFile(proofKey, await file.arrayBuffer(), file.type);
   }
 
   const updated = await submitPayment(code, paymentRef, paymentPayer, proofKey);

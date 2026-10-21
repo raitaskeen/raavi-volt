@@ -1,8 +1,9 @@
-import { media } from "@/lib/cf";
+import { getFile } from "@/lib/storage";
 
 /**
- * Serves public product images from R2. Keys are random UUIDs, so responses
- * are immutable and cached at the edge with the Workers Cache API.
+ * Serves public product images. Keys are random UUIDs, so responses are
+ * immutable: browsers cache them for a year, and on a custom domain the
+ * Workers Cache API serves repeats without touching D1.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ key: string[] }> }) {
   const key = (await params).key.join("/");
@@ -13,15 +14,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ key:
   const cached = await cache?.match(request).catch(() => undefined);
   if (cached) return cached;
 
-  const object = await media().get(key);
-  if (!object) return new Response("Not found", { status: 404 });
+  const file = await getFile(key);
+  if (!file) return new Response("Not found", { status: 404 });
 
-  const headers = new Headers();
-  headers.set("Content-Type", object.httpMetadata?.contentType ?? "image/webp");
-  headers.set("Cache-Control", "public, max-age=31536000, immutable");
-  headers.set("ETag", object.httpEtag);
+  if (request.headers.get("if-none-match") === file.etag) {
+    return new Response(null, { status: 304, headers: { ETag: file.etag, "Cache-Control": "public, max-age=31536000, immutable" } });
+  }
 
-  const response = new Response(object.body as unknown as ReadableStream, { headers });
+  const response = new Response(file.bytes, {
+    headers: {
+      "Content-Type": file.contentType,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      ETag: file.etag,
+    },
+  });
   await cache?.put(request, response.clone()).catch(() => undefined);
   return response;
 }

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { media } from "@/lib/cf";
+import { deleteFiles } from "@/lib/storage";
 import { createProduct, deleteProduct, getProductById, slugExists, updateProduct } from "@/lib/products";
 import { fieldErrors, productSchema, type FieldErrors } from "@/lib/validation";
 import { slugify } from "@/lib/utils";
@@ -19,7 +19,7 @@ function parseJSONField(formData: FormData, key: string) {
 }
 
 async function deleteImages(keys: string[]) {
-  if (keys.length) await media().delete(keys).catch((e) => console.error("R2 delete failed", e));
+  await deleteFiles(keys).catch((e) => console.error("image delete failed", e));
 }
 
 export async function saveProduct(id: string | null, _prev: ProductFormState, formData: FormData): Promise<ProductFormState> {

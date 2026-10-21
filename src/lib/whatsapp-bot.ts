@@ -3,7 +3,8 @@
  * store number. Replies are free because the customer just messaged us (that
  * opens WhatsApp's 24-hour customer-service window).
  */
-import { db, media } from "@/lib/cf";
+import { db } from "@/lib/cf";
+import { putFile } from "@/lib/storage";
 import { couriers, paymentAccounts, statusLabel, store, type OrderStatus } from "@/config/store";
 import {
   getOrderByCode,
@@ -169,7 +170,7 @@ async function handleMessage(m: InboundMessage, profileName: string | null) {
     const file = await downloadMedia(mediaId);
     const ext = PAY_EXT[file.mimeType] ?? "jpg";
     const key = `proofs/${order.code}/${crypto.randomUUID()}.${ext}`;
-    await media().put(key, file.bytes, { httpMetadata: { contentType: file.mimeType } });
+    await putFile(key, file.bytes, file.mimeType);
     const tid = text.match(TID_RE)?.[1] ?? order.paymentRef ?? "WhatsApp screenshot";
     // Triggers the "payment received" reply to the customer and the owner alert.
     await submitPayment(order.code, tid, profileName ?? order.customerName, key);

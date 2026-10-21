@@ -6,4 +6,3 @@ export function cfEnv() {
 }
 
 export const db = () => cfEnv().DB;
-export const media = () => cfEnv().MEDIA;

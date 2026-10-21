@@ -1,5 +1,5 @@
 import { isAdmin } from "@/lib/auth";
-import { media } from "@/lib/cf";
+import { putFile } from "@/lib/storage";
 
 const TYPES: Record<string, string> = {
   "image/webp": "webp",
@@ -22,8 +22,6 @@ export async function POST(request: Request) {
   if (file.size > MAX_BYTES) return Response.json({ error: "Image must be under 6 MB" }, { status: 413 });
 
   const key = `products/${crypto.randomUUID()}.${ext}`;
-  await media().put(key, await file.arrayBuffer(), {
-    httpMetadata: { contentType: file.type, cacheControl: "public, max-age=31536000, immutable" },
-  });
+  await putFile(key, await file.arrayBuffer(), file.type);
   return Response.json({ key });
 }
