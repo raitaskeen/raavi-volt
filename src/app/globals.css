@@ -120,7 +120,22 @@
   }
 }
 
+@keyframes ticker {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 @layer utilities {
+  /* Seamless GPU ticker: content is two identical halves, so -50% loops exactly. */
+  .ticker {
+    animation: ticker var(--ticker-duration, 60s) linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
   .container-x {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
@@ -152,7 +167,8 @@
     scroll-behavior: auto;
   }
   .animate-marquee,
-  .animate-marquee-fast {
+  .animate-marquee-fast,
+  .ticker {
     animation: none;
   }
 }
