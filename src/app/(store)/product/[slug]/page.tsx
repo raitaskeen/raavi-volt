@@ -123,7 +123,13 @@ export default async function ProductPage({ params }: { params: Params }) {
           <ul className="grid gap-px overflow-hidden rounded-lg border bg-border text-sm sm:grid-cols-2">
             {[
               { icon: Truck, text: product.price >= shipping.freeOver ? "Free delivery" : `${shipping.lahoreEta}` },
-              { icon: BadgeCheck, text: product.warranty ?? "Genuine product" },
+              {
+                icon: BadgeCheck,
+                text:
+                  product.brand === store.authorisedDealerOf
+                    ? `Authorised ${store.authorisedDealerOf} dealer · ${product.warranty ?? "official warranty"}`
+                    : (product.warranty ?? "Genuine product"),
+              },
               { icon: QrCode, text: "Pay by bank transfer / QR" },
               { icon: WhatsAppIcon, text: "WhatsApp support" },
             ].map(({ icon: Icon, text }) => (

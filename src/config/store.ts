@@ -7,18 +7,20 @@ export const store = {
   tagline: "Lahore's all-in-one electric store",
   description:
     "Genuine Geepas and top-brand electric appliances — kitchen, home, cooling, lighting and personal care — delivered across Lahore and Pakistan.",
-  url: "https://raavivolt.pk", // TODO: your production domain
+  url: "https://amirstore.tech",
   currency: "PKR",
   contact: {
-    phone: "+92 300 0000000", // TODO
-    whatsapp: "923000000000", // TODO: digits only, used for wa.me links
-    email: "hello@raavivolt.pk", // TODO
-    address: "Hall Road, Lahore, Punjab 54000", // TODO
-    hours: "Mon–Sat · 10am – 9pm",
+    phone: "+92 301 4865252",
+    whatsapp: "923014865252", // digits only, used for wa.me links and admin alerts
+    email: "owner@amirstore.tech",
+    address: "99-E, Street 3, Block E, near Dar-e-Arqam School, Defence Fort, Ghazi Road, Lahore",
+    hours: "Open daily · 8am – 10pm",
   },
+  /** Authorised dealer status shown in trust badges (keep accurate). */
+  authorisedDealerOf: "Geepas",
   social: {
-    instagram: "https://instagram.com/raavivolt", // TODO
-    facebook: "https://facebook.com/raavivolt", // TODO
+    instagram: "", // TODO: provided later
+    facebook: "", // TODO: provided later
   },
 } as const;
 

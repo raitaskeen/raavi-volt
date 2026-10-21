@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Zap } from "lucide-react";
-import { shipping } from "@/config/store";
+import { shipping, store } from "@/config/store";
 import { listDeals } from "@/lib/products";
 import { discountPercent, formatPKR } from "@/lib/utils";
 
@@ -22,7 +22,7 @@ export async function DealsStrip() {
       ),
     })),
     { key: "pay", content: <>Pay instantly with Raast QR · JazzCash · Easypaisa</> },
-    { key: "warranty", content: <>100% genuine · brand warranty</> },
+    { key: "warranty", content: <>Authorised {store.authorisedDealerOf} dealer · official warranty</> },
   ];
 
   const row = (hidden: boolean) =>

@@ -14,7 +14,7 @@ import { formatPKR } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 const perks = [
-  { icon: ShieldCheck, title: "100% genuine", body: "Sourced from authorised distributors with brand warranty." },
+  { icon: ShieldCheck, title: `Authorised ${store.authorisedDealerOf} dealer`, body: "100% genuine stock with official brand warranty." },
   { icon: Truck, title: "Fast Lahore delivery", body: `${shipping.lahoreEta}. Free over ${formatPKR(shipping.freeOver)}.` },
   { icon: QrCode, title: "Pay in seconds", body: "Scan our Raast QR from any bank app. No card needed." },
   { icon: WhatsAppIcon, title: "Real humans", body: "Order help and after-sales on WhatsApp." },

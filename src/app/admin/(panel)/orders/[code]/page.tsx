@@ -183,6 +183,20 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ cod
         </div>
 
         <div className="grid gap-6 xl:sticky xl:top-10">
+          {!apiReady && order.whatsappOptIn && (
+            <section className="grid gap-3 rounded-xl border-2 border-[#1da851] bg-[#25d366]/[0.08] p-5">
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <WhatsAppIcon className="size-5 text-[#1da851]" /> Send the customer this update
+              </p>
+              <p className="text-xs text-charcoal">{stageText}</p>
+              <Button asChild className="bg-[#1da851] hover:bg-[#178a43]">
+                <a href={manualLink(order.phone, stageText)} target="_blank" rel="noopener noreferrer">
+                  <WhatsAppIcon /> Open in WhatsApp
+                </a>
+              </Button>
+              <p className="text-[11px] text-muted-foreground">Free manual mode — opens your WhatsApp with the message ready. Tap send.</p>
+            </section>
+          )}
           {step && (
             <form key={`next-${order.status}`} action={setOrderStatus.bind(null, order.code)} className="grid gap-3 rounded-xl border-2 border-ink bg-volt p-5">
               <input type="hidden" name="status" value={step.status} />

@@ -19,7 +19,7 @@ export default function AboutPage() {
       <section>
         <h2>What we promise</h2>
         <ul>
-          <li>Only genuine products from authorised distributors, with brand warranty.</li>
+          <li>Authorised {store.authorisedDealerOf} dealer — only genuine stock, with official brand warranty.</li>
           <li>Clear prices in PKR — no hidden charges at checkout.</li>
           <li>Simple bank / Raast QR payments; no card details ever needed.</li>
           <li>Fast delivery across Lahore and courier delivery nationwide.</li>

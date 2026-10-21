@@ -9,6 +9,9 @@ export function Footer() {
         <div className="grid content-start gap-4">
           <Logo inverse />
           <p className="max-w-xs text-sm text-white/60">{store.description}</p>
+          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-volt/40 px-3 py-1 text-xs font-medium text-volt">
+            <span className="size-1.5 rounded-full bg-volt" aria-hidden /> Authorised {store.authorisedDealerOf} dealer
+          </p>
         </div>
         <div>
           <h3 className="eyebrow mb-4 text-white/50">Shop</h3>

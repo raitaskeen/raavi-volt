@@ -23,7 +23,7 @@ export const templates = {
     audience: "customer",
     when: "Customer places an order",
     body: "Assalam o Alaikum {{1}}! Thank you for shopping with Raavi Volt. Your order {{2}} for Rs {{3}} has been placed. Please pay to {{4}} and submit your transaction ID here: {{5}} - We reserve your items for 72 hours.",
-    example: ["Ali", "RV-7K3M9QXA2T", "18,499", "Meezan Bank 0201 0000000000", "https://raavivolt.pk/order/RV-7K3M9QXA2T"],
+    example: ["Ali", "RV-7K3M9QXA2T", "18,499", "Meezan Bank 0201 0000000000", "https://amirstore.tech/order/RV-7K3M9QXA2T"],
   },
   paymentReceived: {
     name: "rv_payment_received",
@@ -37,14 +37,14 @@ export const templates = {
     audience: "customer",
     when: "Admin verifies the payment",
     body: "Good news {{1}}! Payment for order {{2}} is verified and your order is confirmed. We are packing it now. Track it here: {{3}} - Thank you for choosing Raavi Volt.",
-    example: ["Ali", "RV-7K3M9QXA2T", "https://raavivolt.pk/order/RV-7K3M9QXA2T"],
+    example: ["Ali", "RV-7K3M9QXA2T", "https://amirstore.tech/order/RV-7K3M9QXA2T"],
   },
   orderShipped: {
     name: "rv_order_shipped",
     audience: "customer",
     when: "Admin marks the order as shipped",
     body: "Hi {{1}}, your order {{2}} is on its way with {{3}} (tracking: {{4}}). Expected delivery {{5}}. Track it here: {{6}} - Please keep your phone on for the rider.",
-    example: ["Ali", "RV-7K3M9QXA2T", "TCS", "1234567890", "within 24 hours", "https://raavivolt.pk/order/RV-7K3M9QXA2T"],
+    example: ["Ali", "RV-7K3M9QXA2T", "TCS", "1234567890", "within 24 hours", "https://amirstore.tech/order/RV-7K3M9QXA2T"],
   },
   orderDelivered: {
     name: "rv_order_delivered",
@@ -72,7 +72,7 @@ export const templates = {
     audience: "admin",
     when: "New order, payment submitted, or new contact message (sent to the store owner)",
     body: "Raavi Volt alert: {{1}}. Details: {{2}}. Open: {{3}} - sent automatically.",
-    example: ["New order RV-7K3M9QXA2T", "Ali, Lahore, Rs 18,499", "https://raavivolt.pk/admin/orders/RV-7K3M9QXA2T"],
+    example: ["New order RV-7K3M9QXA2T", "Ali, Lahore, Rs 18,499", "https://amirstore.tech/admin/orders/RV-7K3M9QXA2T"],
   },
 } satisfies Record<string, TemplateDef>;
 
