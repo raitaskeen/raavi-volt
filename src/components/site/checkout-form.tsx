@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Field, Skeleton, fieldAria } from "@/components/ui/misc";
 import { ProductImage } from "@/components/site/product-image";
+import { WhatsAppIcon } from "@/components/site/icons";
 import { placeOrder, type CheckoutState } from "@/app/(store)/checkout/actions";
 import { cartSubtotal, useCart, useHydrated } from "@/lib/cart";
 import { cities, lahoreAreas, paymentAccounts, shippingFor } from "@/config/store";
@@ -137,6 +138,17 @@ export function CheckoutForm() {
             <Field label="Email" htmlFor="email" optional error={errors.email} hint="Optional — for order updates">
               <Input {...fieldAria("email", errors.email, true)} type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" maxLength={120} defaultValue={saved?.email} />
             </Field>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-[#25d366]/[0.07] p-3.5 text-sm sm:col-span-2 has-[:checked]:border-[#25d366]/60">
+              <input type="checkbox" name="whatsappOptIn" defaultChecked className="mt-0.5 size-4 accent-[#25d366]" />
+              <span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <WhatsAppIcon className="size-4 text-[#1da851]" /> Get order updates on WhatsApp
+                </span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Payment details, confirmation, dispatch with tracking, and delivery — sent to the number above.
+                </span>
+              </span>
+            </label>
           </div>
         </Section>
 

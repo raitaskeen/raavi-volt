@@ -3,6 +3,7 @@ import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WhatsAppIcon } from "@/components/site/icons";
 import { InfoPage } from "@/components/site/info-page";
+import { ContactForm } from "@/components/site/contact-form";
 import { store } from "@/config/store";
 
 export const metadata: Metadata = { title: "Contact", description: `Call, WhatsApp or visit ${store.name} in Lahore.` };
@@ -40,9 +41,10 @@ export default function ContactPage() {
           </li>
         ))}
       </ul>
-      <Button asChild size="lg" className="w-fit">
+      <ContactForm />
+      <Button asChild size="lg" variant="outline" className="w-fit">
         <a href={`https://wa.me/${store.contact.whatsapp}`} target="_blank" rel="noopener noreferrer">
-          <WhatsAppIcon className="size-5" /> Start a WhatsApp chat
+          <WhatsAppIcon className="size-5 text-[#1da851]" /> Or chat with us on WhatsApp now
         </a>
       </Button>
     </InfoPage>

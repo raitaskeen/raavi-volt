@@ -1,2 +1,5 @@
 ADMIN_PASSWORD=change-me
 SESSION_SECRET=generate-a-long-random-string
+# Optional: WhatsApp Cloud API (see docs/WHATSAPP_SETUP.md)
+# WHATSAPP_TOKEN=
+# WHATSAPP_PHONE_NUMBER_ID=

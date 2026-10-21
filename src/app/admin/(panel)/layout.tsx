@@ -5,6 +5,8 @@ import { Logo } from "@/components/site/logo";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { logout } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/auth";
+import { countNewMessages } from "@/lib/messages";
+import { orderStats } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -14,6 +16,8 @@ export const metadata: Metadata = {
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();
+  const [newMessages, stats] = await Promise.all([countNewMessages(), orderStats()]);
+  const badges = { "/admin/messages": newMessages, "/admin/orders": stats.toVerify };
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[240px_1fr]">
@@ -33,11 +37,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </form>
           </div>
           <div className="hidden lg:block">
-            <AdminNav />
+            <AdminNav badges={badges} />
           </div>
         </div>
         <div className="no-scrollbar overflow-x-auto px-4 pb-2 lg:hidden">
-          <AdminNav horizontal />
+          <AdminNav horizontal badges={badges} />
         </div>
         <div className="absolute inset-x-5 bottom-6 hidden gap-1 lg:grid">
           <Link href="/" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white">

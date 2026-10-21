@@ -32,6 +32,12 @@ const statusTone: Record<string, string> = {
   cancelled: "border border-dashed border-border text-muted-foreground line-through",
 };
 
+export const messageTone = {
+  new: "bg-volt text-ink ring-1 ring-ink",
+  replied: "border bg-card text-ink",
+  closed: "bg-muted text-muted-foreground",
+} as const;
+
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap", statusTone[status])}>

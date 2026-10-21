@@ -159,3 +159,25 @@ export type OrderStatus = (typeof orderStatuses)[number]["value"];
 export function statusLabel(status: string) {
   return orderStatuses.find((s) => s.value === status)?.label ?? status;
 }
+
+/** Couriers offered when marking an order as shipped. */
+export const couriers = ["Own rider (Lahore)", "TCS", "Leopards", "M&P", "PostEx", "Trax", "BlueEx", "Call Courier"] as const;
+
+/** Human delivery estimate used in WhatsApp shipping updates. */
+export function deliveryEta(city: string) {
+  return city.trim().toLowerCase() === "lahore" ? "within 24 hours" : "in 2–4 working days";
+}
+
+/**
+ * WhatsApp Cloud API settings. Credentials are secrets (see README):
+ * WHATSAPP_TOKEN and WHATSAPP_PHONE_NUMBER_ID. Without them, messages are
+ * logged as "skipped" and admins can still send them manually.
+ */
+export const whatsappConfig = {
+  /** Store owner's WhatsApp (digits, intl format) — receives new order / payment / contact alerts. */
+  adminNumber: store.contact.whatsapp,
+  /** Language code the templates were approved in. */
+  language: "en",
+} as const;
+
+export const contactTopics = ["Order status", "Product question", "Warranty / repair", "Bulk / corporate order", "Other"] as const;

@@ -27,6 +27,7 @@ export async function placeOrder(_prev: CheckoutState, formData: FormData): Prom
     postalCode: formData.get("postalCode") ?? "",
     notes: formData.get("notes") ?? "",
     paymentAccount: formData.get("paymentAccount") ?? "",
+    whatsappOptIn: formData.get("whatsappOptIn") === "on",
     lines,
   });
   if (!parsed.success) {

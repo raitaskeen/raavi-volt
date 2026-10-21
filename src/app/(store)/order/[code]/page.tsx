@@ -69,7 +69,9 @@ export default async function OrderPage({
           ))}
         </ol>
       ) : (
-        <p className="mb-10 rounded-lg border border-ink p-4 text-sm">This order was cancelled. Contact us if you think this is a mistake.</p>
+        <p className="mb-10 rounded-lg border border-ink p-4 text-sm">
+          This order was cancelled{order.cancelReason ? ` — ${order.cancelReason}` : ""}. Contact us if you think this is a mistake.
+        </p>
       )}
 
       <div className="grid items-start gap-8 lg:grid-cols-[1fr_340px]">
@@ -136,9 +138,28 @@ export default async function OrderPage({
             </>
           )}
           {!needsPayment && order.status !== "cancelled" && (
-            <div className="rounded-xl border bg-card p-6 text-sm">
-              <p className="font-medium">Payment verified — thank you!</p>
-              <p className="mt-1 text-muted-foreground">We&apos;ll keep you posted by SMS / WhatsApp on {order.phone}.</p>
+            <div className="grid gap-4 rounded-xl border bg-card p-6 text-sm">
+              <div>
+                <p className="font-medium">{order.status === "delivered" ? "Delivered — enjoy!" : "Payment verified — thank you!"}</p>
+                <p className="mt-1 text-muted-foreground">
+                  {order.whatsappOptIn ? `Updates are sent on WhatsApp to ${order.phone}.` : `We will keep you posted on ${order.phone}.`}
+                </p>
+              </div>
+              {(order.status === "shipped" || order.status === "delivered") && (order.courier || order.trackingNumber) && (
+                <dl className="grid grid-cols-2 gap-3 rounded-lg bg-volt/25 p-4">
+                  <div>
+                    <dt className="eyebrow text-muted-foreground">Courier</dt>
+                    <dd className="mt-1 font-medium">{order.courier ?? "—"}</dd>
+                  </div>
+                  <div>
+                    <dt className="eyebrow text-muted-foreground">Tracking no.</dt>
+                    <dd className="mt-1 flex items-center gap-2 font-mono">
+                      {order.trackingNumber ?? "—"}
+                      {order.trackingNumber && <CopyButton value={order.trackingNumber} label="tracking number" />}
+                    </dd>
+                  </div>
+                </dl>
+              )}
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { categories, cities, paymentAccounts, orderStatuses } from "@/config/store";
+import { categories, cities, contactTopics, couriers, paymentAccounts, orderStatuses } from "@/config/store";
 
 const optionalText = (max: number) =>
   z
@@ -40,6 +40,7 @@ export const checkoutSchema = z.object({
   paymentAccount: z.enum(paymentAccounts.map((a) => a.id) as [string, ...string[]], {
     error: "Choose an account to pay into",
   }),
+  whatsappOptIn: z.boolean(),
   lines: z
     .array(z.object({ productId: z.string().min(1).max(64), qty: z.number().int().min(1).max(20) }))
     .min(1, "Your cart is empty")
@@ -94,6 +95,40 @@ export const productSchema = z
   });
 
 export const statusSchema = z.enum(orderStatuses.map((s) => s.value) as [string, ...string[]]);
+
+export const statusUpdateSchema = z.object({
+  status: statusSchema,
+  courier: z
+    .string()
+    .trim()
+    .max(40)
+    .transform((v) => v || null)
+    .refine((v) => v === null || (couriers as readonly string[]).includes(v), "Pick a courier from the list")
+    .nullable()
+    .default(null),
+  trackingNumber: optionalText(60),
+  reason: optionalText(160),
+});
+
+export const contactSchema = z.object({
+  name: z.string().trim().min(2, "Please enter your name").max(80),
+  phone: pkPhone,
+  email: z
+    .string()
+    .trim()
+    .max(120)
+    .refine((v) => v === "" || z.email().safeParse(v).success, "Enter a valid email address")
+    .transform((v) => (v === "" ? null : v.toLowerCase())),
+  topic: z.enum(contactTopics, { error: "Choose a topic" }),
+  orderCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine((v) => v === "" || /^RV-[A-Z0-9]{10}$/.test(v), "Order numbers look like RV-7K3M9QXA2T")
+    .transform((v) => v || null),
+  body: z.string().trim().min(10, "Tell us a little more (at least 10 characters)").max(2000),
+  whatsappOptIn: z.boolean(),
+});
 
 export type FieldErrors = Partial<Record<string, string>>;
 

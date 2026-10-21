@@ -41,6 +41,13 @@ Monochrome base (matte black · charcoal · white · paper white) with two elect
 - Products: list/search/filter, **add / edit / delete**, multi-image upload (auto-compressed to WebP in the browser, drag & drop, reorder, cover image), specs editor, featured / live toggles
 - Orders: filter by status, view payment proof, **one-click next step** (verify & confirm → shipped → delivered), manual status override (cancelling restocks items), call / WhatsApp the customer
 
+**WhatsApp notifications** — see [docs/WHATSAPP_SETUP.md](docs/WHATSAPP_SETUP.md)
+- Customers (opt-in at checkout) get a WhatsApp update at **every stage**: order placed (with pay-to details), payment received, confirmed, shipped (courier + tracking + ETA), delivered, cancelled (with reason, including auto-expiry)
+- Store owner gets alerts for new orders, payments to verify and new contact messages
+- Contact form → inbox in `/admin/messages` + WhatsApp acknowledgement to the customer
+- Uses Meta's official WhatsApp Cloud API with 8 approved Utility templates (`src/lib/whatsapp-templates.ts`), sent in the background via `after()`; every attempt is logged per order
+- Works before the API is connected: messages are logged as *skipped* and admins get a one-tap **Send manually** button with the same wording
+
 **Production hardening**
 - Workers Rate Limiting on login, checkout, payment submit and order lookup
 - Unpaid orders auto-cancel and restock after 72 h (`orderHoldHours`)
@@ -82,6 +89,8 @@ Or push to `main` and let **GitHub Actions** deploy (`.github/workflows/deploy.y
 The OpenNext build is verified on Windows as well — `bun run preview` runs the real Worker bundle locally in workerd.
 
 ## Make it yours
+
+**Start here: [docs/LAUNCH_CHECKLIST.md](docs/LAUNCH_CHECKLIST.md)** lists every piece of business data the store needs and where it goes.
 
 Everything placeholder lives in **`src/config/store.ts`** (marked `TODO`):
 

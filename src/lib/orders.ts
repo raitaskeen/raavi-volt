@@ -1,6 +1,7 @@
 import { db } from "@/lib/cf";
 import { shippingFor, type OrderStatus } from "@/config/store";
 import { getProductsByIds } from "@/lib/products";
+import { notifyCustomer, notifyNewOrder, notifyPaymentSubmitted } from "@/lib/notifications";
 
 export type OrderItem = {
   productId: string;
@@ -32,6 +33,10 @@ export type Order = {
   paymentPayer: string | null;
   paymentProof: string | null;
   status: OrderStatus;
+  whatsappOptIn: boolean;
+  courier: string | null;
+  trackingNumber: string | null;
+  cancelReason: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -56,6 +61,10 @@ type Row = {
   payment_payer: string | null;
   payment_proof: string | null;
   status: OrderStatus;
+  whatsapp_opt_in: number;
+  courier: string | null;
+  tracking_number: string | null;
+  cancel_reason: string | null;
   created_at: number;
   updated_at: number;
 };
@@ -81,6 +90,10 @@ function toOrder(r: Row): Order {
     paymentPayer: r.payment_payer,
     paymentProof: r.payment_proof,
     status: r.status,
+    whatsappOptIn: r.whatsapp_opt_in === 1,
+    courier: r.courier,
+    trackingNumber: r.tracking_number,
+    cancelReason: r.cancel_reason,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -107,6 +120,7 @@ export type NewOrder = {
   postalCode: string | null;
   notes: string | null;
   paymentAccount: string;
+  whatsappOptIn: boolean;
   lines: { productId: string; qty: number }[];
 };
 
@@ -146,8 +160,8 @@ export async function createOrder(input: NewOrder) {
       ),
       d
         .prepare(
-          `INSERT INTO orders (id, code, customer_name, phone, email, city, area, address, postal_code, notes, items, subtotal, shipping, total, payment_account)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO orders (id, code, customer_name, phone, email, city, area, address, postal_code, notes, items, subtotal, shipping, total, payment_account, whatsapp_opt_in)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
           id,
@@ -165,6 +179,7 @@ export async function createOrder(input: NewOrder) {
           shipping,
           total,
           input.paymentAccount,
+          input.whatsappOptIn ? 1 : 0,
         ),
     ]);
   } catch (err) {
@@ -172,6 +187,8 @@ export async function createOrder(input: NewOrder) {
     throw err;
   }
 
+  const order = await getOrderByCode(code);
+  if (order) notifyNewOrder(order);
   return { code, total };
 }
 
@@ -189,7 +206,10 @@ export async function submitPayment(code: string, ref: string, payer: string, pr
     )
     .bind(ref, payer, proofKey, code)
     .run();
-  return res.meta.changes > 0;
+  if (res.meta.changes === 0) return false;
+  const order = await getOrderByCode(code);
+  if (order) notifyPaymentSubmitted(order);
+  return true;
 }
 
 /* ---------------------------------- admin --------------------------------- */
@@ -206,17 +226,35 @@ export async function listOrders({ status, page = 1, pageSize = 30 }: { status?:
   return { items: (rows.results as Row[]).map(toOrder), total, pageCount: Math.max(1, Math.ceil(total / pageSize)) };
 }
 
-/** Updates status; cancelling an order puts its items back in stock (once). */
-export async function updateOrderStatus(code: string, status: OrderStatus) {
+export type StatusExtra = { courier?: string | null; trackingNumber?: string | null; reason?: string | null; notify?: boolean };
+
+/**
+ * Updates status (plus shipment / cancellation details) and sends the customer
+ * a WhatsApp update. Cancelling puts items back in stock (once).
+ */
+export async function updateOrderStatus(code: string, status: OrderStatus, extra: StatusExtra = {}) {
   const order = await getOrderByCode(code);
   if (!order || order.status === status) return;
   const d = db();
-  const stmts = [d.prepare("UPDATE orders SET status = ?, updated_at = unixepoch() WHERE code = ?").bind(status, code)];
+  const stmts = [
+    d
+      .prepare(
+        `UPDATE orders SET status = ?, updated_at = unixepoch(),
+           courier = COALESCE(?, courier), tracking_number = COALESCE(?, tracking_number), cancel_reason = ?
+         WHERE code = ?`,
+      )
+      .bind(status, extra.courier ?? null, extra.trackingNumber ?? null, status === "cancelled" ? (extra.reason ?? null) : null, code),
+  ];
   const restock = (sign: 1 | -1) =>
     order.items.map((i) => d.prepare("UPDATE products SET stock = stock + ? WHERE id = ?").bind(sign * i.qty, i.productId));
   if (status === "cancelled") stmts.push(...restock(1));
   else if (order.status === "cancelled") stmts.push(...restock(-1));
   await d.batch(stmts);
+
+  if (extra.notify !== false && status !== "awaiting_payment") {
+    const updated = await getOrderByCode(code);
+    if (updated) notifyCustomer(updated, status);
+  }
 }
 
 export async function orderStats() {
@@ -243,7 +281,9 @@ export async function expireStaleOrders(hours: number) {
     .prepare("SELECT code FROM orders WHERE status = 'awaiting_payment' AND created_at < unixepoch() - ? LIMIT 25")
     .bind(hours * 3600)
     .all<{ code: string }>();
-  for (const { code } of results) await updateOrderStatus(code, "cancelled");
+  for (const { code } of results) {
+    await updateOrderStatus(code, "cancelled", { reason: `payment was not received within ${hours} hours` });
+  }
   return results.length;
 }
 

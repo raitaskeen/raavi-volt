@@ -3,6 +3,8 @@ import { ArrowRight, PackagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, StatCard, StatusBadge, TableShell } from "@/components/admin/ui";
 import { expireStaleOrders, listOrders, orderStats } from "@/lib/orders";
+import { countNewMessages } from "@/lib/messages";
+import { whatsappConfigured } from "@/lib/whatsapp";
 import { orderHoldHours } from "@/config/store";
 import { lowStockProducts, productStats } from "@/lib/products";
 import { formatDate, formatPKR } from "@/lib/utils";
@@ -11,12 +13,13 @@ export const metadata = { title: "Dashboard" };
 
 export default async function AdminDashboard() {
   await expireStaleOrders(orderHoldHours);
-  const [ps, os, recent, toVerify, low] = await Promise.all([
+  const [ps, os, recent, toVerify, low, newMessages] = await Promise.all([
     productStats(),
     orderStats(),
     listOrders({ pageSize: 6 }),
     listOrders({ status: "payment_submitted", pageSize: 5 }),
     lowStockProducts(6),
+    countNewMessages(),
   ]);
 
   return (
@@ -34,6 +37,17 @@ export default async function AdminDashboard() {
         <StatCard label="Awaiting payment" value={os.awaiting} hint="Orders not yet paid" />
         <StatCard label="Revenue" value={formatPKR(os.revenue)} hint="Confirmed, shipped & delivered" />
         <StatCard label="Products" value={`${ps.active}/${ps.total}`} hint={`${ps.lowStock} low on stock`} />
+      </div>
+
+      <div className="mt-3 grid gap-3 sm:mt-4 sm:grid-cols-2 sm:gap-4">
+        <Link href="/admin/messages" className="rounded-xl transition-transform hover:-translate-y-0.5">
+          <StatCard label="New messages" value={newMessages} hint="From the contact form" highlight={newMessages > 0} />
+        </Link>
+        <StatCard
+          label="WhatsApp updates"
+          value={whatsappConfigured() ? "Connected" : "Not connected"}
+          hint={whatsappConfigured() ? "Customers get automatic order updates" : "Add WHATSAPP_TOKEN + WHATSAPP_PHONE_NUMBER_ID — see docs/WHATSAPP_SETUP.md"}
+        />
       </div>
 
       {toVerify.items.length > 0 && (
