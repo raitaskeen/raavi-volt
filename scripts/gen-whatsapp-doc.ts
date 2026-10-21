@@ -9,59 +9,83 @@ const rows = Object.values(templates)
   })
   .join("\n");
 
-const doc = `# WhatsApp notifications — setup
+const doc = `# WhatsApp — how it works and how to set it up
 
-Raavi Volt sends WhatsApp messages automatically at every order stage and for the contact form,
-using Meta's official **WhatsApp Cloud API**. Until it's connected, every message is logged as
-*skipped* in the admin and you can send it in one tap with **Send manually** on the order page.
+Raavi Volt talks to customers on WhatsApp through Meta's official **WhatsApp Cloud API**.
+It is built to run **free**: it only sends free messages unless you choose otherwise.
 
-## What gets sent
+## The free rule (why this design)
 
-| Event | Customer gets | You (store owner) get |
-| --- | --- | --- |
-| Order placed | \`rv_order_placed\` — amount, account to pay, order link | \`rv_admin_alert\` — new order |
-| Payment details submitted | \`rv_payment_received\` | \`rv_admin_alert\` — payment to verify |
-| Admin confirms payment | \`rv_order_confirmed\` | — |
-| Admin marks shipped (courier + tracking) | \`rv_order_shipped\` | — |
-| Admin marks delivered | \`rv_order_delivered\` | — |
-| Cancelled by admin / unpaid after 72 h | \`rv_order_cancelled\` with reason | — |
-| Contact form message | \`rv_contact_received\` | \`rv_admin_alert\` — new message |
+WhatsApp lets a business send **free-form messages for free for 24 hours after the customer's
+last message** (the *customer service window*). Messages a business starts outside that window
+must be pre-approved **templates**, which Meta bills per message. So the store gets the customer
+to message first, and does everything inside that free window.
 
-Customers only get messages if they ticked **“Get order updates on WhatsApp”** at checkout
-(or **“Reply to me on WhatsApp”** on the contact form) — WhatsApp policy requires this opt-in.
-Admins can skip any single update with **“Don't send the customer a WhatsApp update”**.
+## The customer journey
 
-## One-time setup (≈ 30 minutes + template approval)
+1. **Order placed** → the order page shows a big green **Get updates on WhatsApp** button.
+2. Customer taps it → WhatsApp opens with *"Hi Raavi Volt! Please send me updates for order RV-…"* → they press send.
+   *This opens the free 24 h window.*
+3. The store replies **instantly** with the amount and bank / wallet details (+ your Raast QR image if set).
+4. Customer **sends the payment screenshot in the same chat** (or types \`TID 123456789\`).
+   The store downloads it, attaches it to the order as proof, and replies "payment received".
+5. You confirm → "order confirmed" message. You ship → courier + tracking message. You deliver → thank-you.
+   While the window is open, each of these is **free**.
+6. Any time the customer writes ("any update?", their order number, or taps **Order status**),
+   the assistant replies with the latest status — which also re-opens the free window.
+7. Customer taps **Talk to a person** (or writes "agent", "call me"…) → the assistant goes quiet for 12 h
+   and alerts you, so you can chat yourself.
 
-1. **Meta Business account** — create/verify one at <https://business.facebook.com>
-   (business name, address, and ideally your NTN / business documents for verification).
-2. **Developer app** — at <https://developers.facebook.com> → *Create app* → type *Business* →
-   add the **WhatsApp** product and link your Business account.
-3. **Phone number** — WhatsApp Manager → *Phone numbers* → *Add*. Use a dedicated number for the
-   API (a number currently on the WhatsApp **app** must be removed from it first, unless you use
-   Meta's *coexistence* onboarding for the WhatsApp Business app). Verify it by SMS / call and set
-   the display name **Raavi Volt**.
-4. **Permanent token** — Business settings → *System users* → add an *Admin* system user →
-   *Assign assets* (your app + WhatsApp account) → *Generate token* with the
-   \`whatsapp_business_messaging\` and \`whatsapp_business_management\` permissions, *never expires*.
-5. **Payment method** — WhatsApp Manager → add a card. Pakistan utility messages are billed per
-   delivered message (check Meta's current rate card).
-6. **Templates** — WhatsApp Manager → *Message templates* → *Create* each template below with the
-   exact name, category **Utility**, language **English**, and body text. Approval is usually minutes.
-7. **Connect the store** (Cloudflare):
+**If the window has closed** when you update an order, \`whatsappConfig.outsideWindow\` decides:
+- \`"skip"\` (default, free): nothing is sent; the admin order page shows a one-tap **Send manually**
+  button, and the customer gets the latest status the next time they message.
+- \`"template"\` (paid): the approved template is sent (a few rupees each — check Meta's Pakistan rate card).
+
+## Run the store from WhatsApp (owner commands)
+
+Set your **personal** WhatsApp as the admin number (secret \`WHATSAPP_ADMIN_NUMBER\`). It must be
+a different number from the store number connected to the API. Message the store number:
+
+| You send | What happens |
+| --- | --- |
+| \`orders\` | List of orders that need attention |
+| \`status RV-XXXXXXXXXX\` | Order summary + admin link |
+| \`confirm RV-XXXXXXXXXX\` | Marks paid & confirmed, messages the customer |
+| \`ship RV-XXXXXXXXXX TCS 123456789\` | Marks shipped with courier + tracking, messages the customer |
+| \`deliver RV-XXXXXXXXXX\` | Marks delivered, messages the customer |
+| \`cancel RV-XXXXXXXXXX reason…\` | Cancels, restocks, tells the customer the reason |
+
+The \`RV-\` prefix is optional and case doesn't matter. You also get alerts there for new orders,
+payment screenshots and "talk to a person" requests — free whenever you've messaged the store number
+in the last 24 h (sending \`orders\` each morning keeps your window open).
+
+## Setup (≈ 30–45 minutes)
+
+1. **Meta Business account** — <https://business.facebook.com> (business name, address; verification raises limits).
+2. **Developer app** — <https://developers.facebook.com> → *Create app* → *Business* → add **WhatsApp**.
+3. **Store phone number** — WhatsApp Manager → *Phone numbers* → add +92 301 4865252 (or a dedicated number).
+   A number already on the WhatsApp app must be moved to the API, **or** use Meta's *coexistence*
+   onboarding to keep using the WhatsApp Business app on the same number. Set display name **Raavi Volt**.
+4. **Permanent token** — Business settings → *System users* → add an Admin system user → assign the app and
+   WhatsApp account → *Generate token* with \`whatsapp_business_messaging\` + \`whatsapp_business_management\`, never expires.
+5. **Webhook** — in the app: *WhatsApp → Configuration → Webhook*
+   - Callback URL: \`https://amirstore.tech/api/whatsapp/webhook\`
+   - Verify token: any random string — the same value you set as \`WHATSAPP_VERIFY_TOKEN\`
+   - Subscribe to the **messages** field.
+6. **Secrets** (Cloudflare):
 
    \`\`\`bash
-   bunx wrangler secret put WHATSAPP_TOKEN            # the system-user token
-   bunx wrangler secret put WHATSAPP_PHONE_NUMBER_ID  # the *ID* shown under API Setup, not the number
+   bunx wrangler secret put WHATSAPP_TOKEN            # system-user token
+   bunx wrangler secret put WHATSAPP_PHONE_NUMBER_ID  # the *ID* under API Setup, not the number
+   bunx wrangler secret put WHATSAPP_APP_SECRET       # App settings → Basic → App secret
+   bunx wrangler secret put WHATSAPP_VERIFY_TOKEN     # same string as in step 5
+   bunx wrangler secret put WHATSAPP_ADMIN_NUMBER     # your personal WhatsApp, e.g. 923001234567
    \`\`\`
 
-   For local testing, add the same two lines to \`.dev.vars\`.
-8. Set **\`whatsappConfig.adminNumber\`** / **\`store.contact.whatsapp\`** in \`src/config/store.ts\`
-   to the number that should receive admin alerts (digits only, e.g. \`923001234567\`).
-9. Place a test order — the admin dashboard shows **WhatsApp updates: Connected** and each order
-   page lists every message as *sent*, *failed* (with Meta's error) or *skipped*.
-
-> Customer **replies** arrive in WhatsApp Manager / your connected inbox, not in this admin.
+7. **Templates** (only needed for the paid \`"template"\` mode or for alerts outside the window) — create the
+   8 below in WhatsApp Manager → *Message templates*, category **Utility**, language **English**.
+8. Place a test order, tap **Get updates on WhatsApp**, send a screenshot. The admin order page shows
+   the chat window status and every message as *free*, *template*, *skipped*, *delivered* or *read*.
 
 ## Templates
 

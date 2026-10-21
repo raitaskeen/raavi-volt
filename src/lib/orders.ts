@@ -292,3 +292,21 @@ export async function findOrderForCustomer(code: string, phone: string) {
   const row = await db().prepare("SELECT code FROM orders WHERE code = ? AND phone = ?").bind(code, phone).first<{ code: string }>();
   return row?.code ?? null;
 }
+
+/** The customer's most recent order that is still in progress (for WhatsApp replies). */
+export async function latestActiveOrderByPhone(phone: string) {
+  const row = await db()
+    .prepare("SELECT * FROM orders WHERE phone = ? AND status NOT IN ('delivered', 'cancelled') ORDER BY created_at DESC LIMIT 1")
+    .bind(phone)
+    .first<Row>();
+  return row ? toOrder(row) : null;
+}
+
+/** Orders that need the owner's attention, newest first (WhatsApp "orders" command). */
+export async function pendingOrders(limit = 10) {
+  const { results } = await db()
+    .prepare("SELECT * FROM orders WHERE status IN ('payment_submitted', 'awaiting_payment', 'confirmed') ORDER BY status = 'payment_submitted' DESC, created_at DESC LIMIT ?")
+    .bind(limit)
+    .all<Row>();
+  return results.map(toOrder);
+}

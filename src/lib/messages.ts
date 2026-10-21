@@ -1,6 +1,6 @@
 import { db } from "@/lib/cf";
 import { notifyAdmin } from "@/lib/notifications";
-import { sendTemplate } from "@/lib/whatsapp";
+import { notify } from "@/lib/whatsapp";
 
 export type MessageStatus = "new" | "replied" | "closed";
 
@@ -54,7 +54,7 @@ export async function createMessage(input: NewMessage) {
     .run();
 
   if (input.whatsappOptIn) {
-    sendTemplate({ to: input.phone, template: "contactReceived", params: [input.name.split(" ")[0] ?? input.name, input.topic.toLowerCase()], messageId: id });
+    notify({ to: input.phone, template: "contactReceived", params: [input.name.split(" ")[0] ?? input.name, input.topic.toLowerCase()], messageId: id });
   }
   const preview = input.body.length > 120 ? `${input.body.slice(0, 117)}...` : input.body;
   notifyAdmin(`New message: ${input.topic}`, `${input.name} (${input.phone})${input.orderCode ? ` re ${input.orderCode}` : ""}: ${preview}`, `/messages/${id}`, {

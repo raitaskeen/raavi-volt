@@ -1,6 +1,6 @@
-import { deliveryEta, paymentAccounts, store, whatsappConfig, type OrderStatus } from "@/config/store";
+import { deliveryEta, paymentAccounts, store, type OrderStatus } from "@/config/store";
 import type { Order } from "@/lib/orders";
-import { sendTemplate } from "@/lib/whatsapp";
+import { adminNumber, notify, type Button } from "@/lib/whatsapp";
 import { renderTemplate, type TemplateKey } from "@/lib/whatsapp-templates";
 
 const pkr = new Intl.NumberFormat("en-PK", { maximumFractionDigits: 0 });
@@ -40,16 +40,25 @@ export function orderStageText(order: Order, stage: OrderStatus = order.status) 
   return renderTemplate(m.template, m.params);
 }
 
+/** Quick-reply buttons attached when an update goes out as a free in-window message. */
+export function orderButtons(order: Order, stage: OrderStatus = order.status): Button[] {
+  const human = { id: "human", title: "Talk to a person" };
+  if (stage === "awaiting_payment") return [{ id: `pay:${order.code}`, title: "How to pay" }, human];
+  if (stage === "delivered" || stage === "cancelled") return [{ id: "shop", title: "Shop again" }, human];
+  return [{ id: `status:${order.code}`, title: "Order status" }, human];
+}
+
 /** Automatic customer update for a stage — only if they opted in at checkout. */
 export function notifyCustomer(order: Order, stage: OrderStatus = order.status) {
   if (!order.whatsappOptIn) return;
-  sendTemplate({ to: order.phone, orderCode: order.code, ...orderStageMessage(order, stage) });
+  notify({ to: order.phone, orderCode: order.code, buttons: orderButtons(order, stage), ...orderStageMessage(order, stage) });
 }
 
 /** Alert to the store owner's WhatsApp. */
 export function notifyAdmin(title: string, details: string, path: string, ref: { orderCode?: string; messageId?: string } = {}) {
-  if (!whatsappConfig.adminNumber) return;
-  sendTemplate({ to: whatsappConfig.adminNumber, template: "adminAlert", params: [title, details, adminUrl(path)], ...ref });
+  const to = adminNumber();
+  if (!to) return;
+  notify({ to, template: "adminAlert", params: [title, details, adminUrl(path)], ...ref });
 }
 
 export function notifyNewOrder(order: Order) {

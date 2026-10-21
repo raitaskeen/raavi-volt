@@ -33,7 +33,10 @@ export default async function OrderPage({
   const others = paymentAccounts.filter((a) => a.id !== chosen.id);
   const needsPayment = order.status === "awaiting_payment" || order.status === "payment_submitted";
   const stepIndex = steps.indexOf(order.status as (typeof steps)[number]);
-  const waText = encodeURIComponent(`Hi ${store.name}! I've placed order ${order.code} for ${formatPKR(order.total)}. Sharing my payment receipt.`);
+  // The customer sending this first opens WhatsApp's free 24 h reply window for automatic updates.
+  const waText = encodeURIComponent(`Hi ${store.name}! Please send me updates for order ${order.code}.`);
+  const waLink = `https://wa.me/${store.contact.whatsapp}?text=${waText}`;
+  const showChatCta = order.status !== "delivered" && order.status !== "cancelled";
 
   return (
     <div className="container-x max-w-5xl py-8 sm:py-12">
@@ -54,6 +57,25 @@ export default async function OrderPage({
           <span>{formatDate(order.createdAt)}</span>
         </div>
         <p className="text-xs text-muted-foreground">Bookmark this page — it&apos;s your private link to track this order.</p>
+        {showChatCta && (
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group mt-2 flex items-center gap-4 rounded-xl bg-[#1da851] p-4 text-white shadow-[0_12px_30px_-12px_rgb(29_168_81/0.7)] transition-transform hover:-translate-y-0.5 sm:p-5"
+          >
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-white/15">
+              <WhatsAppIcon className="size-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">Get updates on WhatsApp</span>
+              <span className="block text-sm text-white/80">
+                {needsPayment ? "Tap, send — we'll reply with payment details. Then just send your screenshot there." : "Tap and send to get dispatch and delivery updates in your chat."}
+              </span>
+            </span>
+            <span className="hidden rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#0f7a3a] sm:block">Open chat</span>
+          </a>
+        )}
       </div>
 
       {/* Progress */}
@@ -131,8 +153,8 @@ export default async function OrderPage({
               )}
 
               <Button asChild variant="outline" size="lg">
-                <a href={`https://wa.me/${store.contact.whatsapp}?text=${waText}`} target="_blank" rel="noopener noreferrer">
-                  <WhatsAppIcon /> Send receipt on WhatsApp
+                <a href={waLink} target="_blank" rel="noopener noreferrer">
+                  <WhatsAppIcon className="text-[#1da851]" /> Prefer WhatsApp? Send your screenshot there
                 </a>
               </Button>
             </>

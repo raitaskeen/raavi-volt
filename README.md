@@ -45,8 +45,10 @@ Monochrome base (matte black · charcoal · white · paper white) with two elect
 - Customers (opt-in at checkout) get a WhatsApp update at **every stage**: order placed (with pay-to details), payment received, confirmed, shipped (courier + tracking + ETA), delivered, cancelled (with reason, including auto-expiry)
 - Store owner gets alerts for new orders, payments to verify and new contact messages
 - Contact form → inbox in `/admin/messages` + WhatsApp acknowledgement to the customer
-- Uses Meta's official WhatsApp Cloud API with 8 approved Utility templates (`src/lib/whatsapp-templates.ts`), sent in the background via `after()`; every attempt is logged per order
-- Works before the API is connected: messages are logged as *skipped* and admins get a one-tap **Send manually** button with the same wording
+- **Runs free**: customers tap *Get updates on WhatsApp* (they message first), which opens WhatsApp's free 24 h window; updates inside it go out as free messages with quick-reply buttons. Outside it, updates are held (or sent as paid templates if `outsideWindow: "template"`)
+- **Two-way assistant** (signed webhook at `/api/whatsapp/webhook`): replies with payment details, attaches payment **screenshots sent in chat** to the order, reads `TID …` references, answers "status", hands off to a person on request
+- **Owner commands** from your personal WhatsApp: `orders`, `status`, `confirm`, `ship RV-… TCS 123`, `deliver`, `cancel`
+- Every message logged per order with free/template, delivered/read receipts, and the customer's own messages; one-tap **Send manually** fallback
 
 **Production hardening**
 - Workers Rate Limiting on login, checkout, payment submit and order lookup

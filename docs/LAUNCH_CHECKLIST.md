@@ -54,7 +54,9 @@ I can add a bulk importer so you don't type 100 products into the admin.
 - [ ] 🔒 Session secret (any long random string) → `bunx wrangler secret put SESSION_SECRET`
 - [ ] **Meta / WhatsApp Business** — verified Business account, a dedicated WhatsApp number,
       8 approved templates (see [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md))
-- [ ] 🔒 `WHATSAPP_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` → `bunx wrangler secret put …`
+- [ ] 🔒 `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN` → `bunx wrangler secret put …`
+- [ ] 🔒 `WHATSAPP_ADMIN_NUMBER` — your **personal** WhatsApp (different from the store number) for alerts and commands
+- [ ] Webhook URL `https://amirstore.tech/api/whatsapp/webhook` registered in the Meta app (field: messages)
 
 ## 6. Optional extras
 - [ ] Cloudflare Web Analytics (free, cookie-less) — just enable it on the domain
@@ -91,8 +93,8 @@ I can add a bulk importer so you don't type 100 products into the admin.
 - **Manual mode — 100% free, active now.** Each order page in the admin shows a green *Open in WhatsApp*
   button with the exact message for the current stage. One tap from your own WhatsApp / WhatsApp Business
   app on +92 301 4865252.
-- **Automatic mode — WhatsApp Cloud API.** Setup is free and Meta gives a free test number for up to
-  5 recipients, but messages to real customers are billed by Meta per delivered template message
-  (a few rupees each; check the current Pakistan rate card). Utility messages sent while the customer
-  has an open chat with you (they messaged in the last 24 hours) are free.
+- **Automatic mode — WhatsApp Cloud API, run free.** The store asks customers to tap *Get updates on
+  WhatsApp* (they message you first), then replies, takes payment screenshots and sends every update
+  inside WhatsApp's free 24-hour window. Outside the window it holds the update (free) unless you switch
+  `outsideWindow` to `"template"` (billed per message by Meta). Full flow: [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md).
 - Unofficial "free WhatsApp bot" tools break WhatsApp's terms and get numbers banned, so the store does not use them.

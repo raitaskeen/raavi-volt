@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { getOrderByCode, updateOrderStatus } from "@/lib/orders";
-import { orderStageMessage } from "@/lib/notifications";
-import { sendTemplateNow } from "@/lib/whatsapp";
+import { orderButtons, orderStageMessage } from "@/lib/notifications";
+import { notifyNow } from "@/lib/whatsapp";
 import { statusUpdateSchema } from "@/lib/validation";
 import type { OrderStatus } from "@/config/store";
 
@@ -37,9 +37,9 @@ export async function resendOrderUpdate(code: string, _prev: ResendState): Promi
   await requireAdmin();
   const order = await getOrderByCode(code);
   if (!order) return { ok: false, message: "Order not found." };
-  const res = await sendTemplateNow({ to: order.phone, orderCode: order.code, ...orderStageMessage(order) });
+  const res = await notifyNow({ to: order.phone, orderCode: order.code, buttons: orderButtons(order), ...orderStageMessage(order) });
   refresh(code);
   if (res.status === "sent") return { ok: true, message: "WhatsApp update sent." };
-  if (res.status === "skipped") return { ok: false, message: "WhatsApp API isn't configured yet — use “Send manually” instead." };
+  if (res.status === "skipped") return { ok: false, message: res.error ?? "Skipped — use “Send manually”." };
   return { ok: false, message: `WhatsApp rejected it: ${res.error}` };
 }

@@ -176,10 +176,20 @@ export function deliveryEta(city: string) {
  * logged as "skipped" and admins can still send them manually.
  */
 export const whatsappConfig = {
-  /** Store owner's WhatsApp (digits, intl format) — receives new order / payment / contact alerts. */
-  adminNumber: store.contact.whatsapp,
+  /**
+   * The owner’s *personal* WhatsApp (digits, e.g. 923001234567) for new-order /
+   * payment / message alerts and admin commands. Must be a different number from
+   * the store number connected to the Cloud API. Leave empty to rely on the dashboard.
+   */
+  adminNumber: "",
   /** Language code the templates were approved in. */
   language: "en",
-} as const;
+  /**
+   * When a customer hasn’t messaged in the last 24 h, free-form messages aren’t
+   * allowed. "skip" (free): log it and let the admin send manually / reply when the
+   * customer writes. "template": send the approved paid template.
+   */
+  outsideWindow: "skip" as "skip" | "template",
+}
 
 export const contactTopics = ["Order status", "Product question", "Warranty / repair", "Bulk / corporate order", "Other"] as const;

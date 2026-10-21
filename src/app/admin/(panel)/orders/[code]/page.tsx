@@ -9,11 +9,11 @@ import { PageHeader, StatusBadge } from "@/components/admin/ui";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { ResendButton } from "@/components/admin/resend-button";
 import { setOrderStatus } from "@/app/admin/(panel)/orders/actions";
-import { couriers, orderStatuses, paymentAccounts } from "@/config/store";
+import { couriers, orderStatuses, paymentAccounts, whatsappConfig } from "@/config/store";
 import { getOrderByCode } from "@/lib/orders";
 import { orderStageText } from "@/lib/notifications";
-import { listNotifications, manualLink, whatsappConfigured } from "@/lib/whatsapp";
-import { templates } from "@/lib/whatsapp-templates";
+import { listInbound, listNotifications, manualLink, toIntl, whatsappConfigured, windowExpiresAt } from "@/lib/whatsapp";
+import { templates, type TemplateKey } from "@/lib/whatsapp-templates";
 import { cn, formatDate, formatPKR } from "@/lib/utils";
 
 export const metadata = { title: "Order" };
@@ -27,6 +27,8 @@ const nextStep: Partial<Record<string, { status: string; label: string }>> = {
 
 const notifTone = {
   sent: "bg-[#25d366]/15 text-[#0f7a3a]",
+  delivered: "bg-[#25d366]/15 text-[#0f7a3a]",
+  read: "bg-[#25d366]/30 text-[#0f7a3a]",
   failed: "bg-flame/15 text-flame",
   skipped: "bg-muted text-muted-foreground",
 } as const;
@@ -53,10 +55,15 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ cod
   const { code } = await params;
   const order = await getOrderByCode(code);
   if (!order) notFound();
-  const [log] = await Promise.all([listNotifications({ orderCode: order.code })]);
+  const [log, inbound, windowEnd] = await Promise.all([
+    listNotifications({ orderCode: order.code }),
+    listInbound(order.code),
+    windowExpiresAt(toIntl(order.phone)),
+  ]);
   const account = paymentAccounts.find((a) => a.id === order.paymentAccount);
   const step = nextStep[order.status];
   const apiReady = whatsappConfigured();
+  const windowOpen = windowEnd !== null && windowEnd > Date.now() / 1000;
   const stageText = orderStageText(order);
 
   return (
@@ -112,7 +119,11 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ cod
               <Row label="Reference">{order.paymentRef ? <span className="font-mono">{order.paymentRef}</span> : "—"}</Row>
               <Row label="Paid by">{order.paymentPayer ?? "—"}</Row>
               <Row label="Screenshot">
-                {order.paymentProof ? (
+                {order.paymentProof?.endsWith(".pdf") ? (
+                  <a href={`/admin/proof/${order.paymentProof}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 underline">
+                    Open PDF receipt <ExternalLink className="size-3" />
+                  </a>
+                ) : order.paymentProof ? (
                   <a href={`/admin/proof/${order.paymentProof}`} target="_blank" rel="noopener noreferrer" className="group block w-fit">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={`/admin/proof/${order.paymentProof}`} alt="Payment screenshot" className="max-h-80 rounded-lg border" />
@@ -144,10 +155,21 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ cod
               </span>
             </div>
             <div className="grid gap-4 p-5">
-              {!apiReady && (
+              {!apiReady ? (
                 <p className="rounded-lg bg-flame/10 px-3 py-2 text-xs text-ink">
                   The WhatsApp Cloud API isn&apos;t connected yet, so automatic messages are logged as <em>skipped</em>. Use “Send manually” to send
                   this update from your own WhatsApp.
+                </p>
+              ) : windowOpen ? (
+                <p className="rounded-lg bg-[#25d366]/10 px-3 py-2 text-xs text-ink">
+                  <strong>Chat window open</strong> until {formatDate(windowEnd!)} — updates go out automatically and are free.
+                </p>
+              ) : (
+                <p className="rounded-lg bg-muted px-3 py-2 text-xs text-ink">
+                  <strong>Chat window closed</strong> — the customer hasn&apos;t messaged in 24 h.{" "}
+                  {whatsappConfig.outsideWindow === "template"
+                    ? "Updates are sent as paid templates."
+                    : "Free mode: updates are held; send manually, or they get the latest status the moment they message you."}
                 </p>
               )}
               <div className="rounded-lg bg-paper p-3">
@@ -167,16 +189,28 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ cod
                   {log.map((n) => (
                     <li key={n.id} className="grid gap-1 text-xs">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={cn("rounded-full px-2 py-0.5 font-medium", notifTone[n.status])}>{n.status}</span>
-                        <span className="font-mono">{templates[n.template]?.name ?? n.template}</span>
+                        <span className={cn("rounded-full px-2 py-0.5 font-medium", notifTone[(n.delivery && n.status === "sent" ? n.delivery : n.status) as keyof typeof notifTone] ?? notifTone.sent)}>{n.delivery && n.status === "sent" ? n.delivery : n.status}</span>
+                        <span className="font-mono">{n.template in templates ? templates[n.template as TemplateKey].name : "bot reply"}</span>
                         <span className="text-muted-foreground">
-                          → {n.audience === "admin" ? "you" : "customer"} · {formatDate(n.created_at)}
+                          {n.status === "sent" ? (n.kind === "text" ? "free" : "template") + " · " : ""}→ {n.audience === "admin" ? "you" : "customer"} ·{" "}
+                          {formatDate(n.created_at)}
                         </span>
                       </div>
                       {n.error && <p className="text-muted-foreground">{n.error}</p>}
                     </li>
                   ))}
                 </ol>
+              )}
+              {inbound.length > 0 && (
+                <div className="grid gap-2 border-t pt-4">
+                  <p className="eyebrow text-muted-foreground">From the customer</p>
+                  {inbound.map((m) => (
+                    <p key={m.id} className="rounded-lg bg-[#25d366]/10 px-3 py-2 text-xs">
+                      <span className="text-muted-foreground">{formatDate(m.created_at)} · </span>
+                      {m.type === "image" || m.type === "document" ? "📎 Payment screenshot (attached above)" : (m.text ?? `[${m.type}]`)}
+                    </p>
+                  ))}
+                </div>
               )}
             </div>
           </section>
