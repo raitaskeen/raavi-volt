@@ -52,11 +52,15 @@ Monochrome base (matte black · charcoal · white · paper white) with two elect
 ```bash
 bun install
 cp .dev.vars.example .dev.vars       # then set ADMIN_PASSWORD and SESSION_SECRET
-bun run setup:local                  # creates local D1 tables + seeds 27 products
-bun run dev                          # http://localhost:3000  (admin: /admin)
+bun run local                        # migrates + seeds local D1, then starts http://localhost:3000
 ```
 
+Open http://localhost:3000 for the store and http://localhost:3000/admin for the dashboard.
+`bun run local` is safe to re-run — migrations are tracked and the seed skips existing products.
+After the first run, plain `bun run dev` is enough. Port busy? `bun run dev -- -p 3100`.
+
 `next dev` gets real D1/R2 bindings through Wrangler's local emulation (state in `.wrangler/`).
+To run the exact production Worker bundle locally in workerd instead, use `bun run preview`.
 
 > **Windows tip:** if local D1 fails with `SQLITE_CANTOPEN`, your folder path is too long. Use a short state dir:
 > `wrangler d1 migrations apply DB --local --persist-to C:\rv-state` (same for `execute`), then run dev with `WRANGLER_PERSIST_DIR=C:\rv-state`.
