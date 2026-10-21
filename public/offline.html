@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en-PK">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#151515" />
+    <title>You're offline · Raavi Volt</title>
+    <link rel="icon" href="/icon.svg" />
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 24px;
+        font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: #151515; color: #fff;
+        background-image: linear-gradient(to right, rgb(255 255 255 / .05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgb(255 255 255 / .05) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+      main { max-width: 380px; text-align: center; }
+      .logo { width: 64px; height: 64px; margin: 0 auto 24px; }
+      h1 { font-size: 28px; line-height: 1.15; margin: 0 0 8px; letter-spacing: -0.02em; }
+      p { margin: 0 0 24px; color: rgb(255 255 255 / .65); }
+      .row { display: grid; gap: 10px; }
+      a, button {
+        display: block; width: 100%; padding: 14px 18px; border-radius: 10px; border: 0;
+        font: 600 15px/1 inherit; text-decoration: none; cursor: pointer;
+      }
+      button { background: #d4ff3a; color: #0a0a0a; }
+      a { background: transparent; color: #fff; border: 1px solid rgb(255 255 255 / .25); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#d4ff3a" />
+        <path d="M18.5 5 9 18h6.2l-1.7 9L23 14h-6.3l1.8-9Z" fill="#0a0a0a" />
+      </svg>
+      <h1>You're offline</h1>
+      <p>Check your connection — your cart is saved on this device and will be right here when you're back.</p>
+      <div class="row">
+        <button type="button" onclick="location.reload()">Try again</button>
+        <a href="tel:+923014865252">Call +92 301 4865252</a>
+      </div>
+    </main>
+  </body>
+</html>

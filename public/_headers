@@ -1,0 +1,17 @@
+# Cloudflare Workers static-asset headers (served without invoking the Worker).
+
+/sw.js
+  Cache-Control: no-cache, must-revalidate
+  Service-Worker-Allowed: /
+  X-Content-Type-Options: nosniff
+
+/offline
+  Cache-Control: no-cache
+  X-Content-Type-Options: nosniff
+
+/icons/*
+  Cache-Control: public, max-age=2592000
+  X-Content-Type-Options: nosniff
+
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

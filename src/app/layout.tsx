@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { ServiceWorker } from "@/components/service-worker";
 import { store } from "@/config/store";
 import "./globals.css";
 
@@ -17,6 +18,9 @@ export const metadata: Metadata = {
   openGraph: { type: "website", siteName: store.name, locale: "en_PK" },
   twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
+  // iOS "Add to Home Screen": full-screen app with our name and status bar.
+  appleWebApp: { capable: true, title: store.name, statusBarStyle: "black-translucent" },
+  other: { "mobile-web-app-capable": "yes" },
 };
 
 export const viewport: Viewport = {
@@ -31,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-PK" className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable}`}>
       <body className="min-h-dvh font-sans">
         <Providers>{children}</Providers>
+        <ServiceWorker />
       </body>
     </html>
   );

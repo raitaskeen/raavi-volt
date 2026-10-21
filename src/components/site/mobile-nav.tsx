@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { CategoryIcon } from "@/components/site/category-icon";
 import { Logo } from "@/components/site/logo";
 import { SearchForm } from "@/components/site/search-form";
+import { InstallApp } from "@/components/site/install-app";
 import { categories, store } from "@/config/store";
 
 export function MobileNav() {
@@ -32,6 +33,7 @@ export function MobileNav() {
           <div onSubmit={() => setOpen(false)}>
             <SearchForm id="q-mobile" />
           </div>
+          <InstallApp variant="row" className="mt-5" />
           <nav className="mt-6 grid gap-1" aria-label="Categories">
             <Link href="/shop" onClick={() => setOpen(false)} className="flex items-center justify-between rounded-md px-3 py-3 font-medium hover:bg-accent">
               Shop all <ArrowUpRight className="size-4" />

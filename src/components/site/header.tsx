@@ -3,6 +3,7 @@ import { Logo } from "@/components/site/logo";
 import { CartButton } from "@/components/site/cart-sheet";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { SearchForm } from "@/components/site/search-form";
+import { InstallApp } from "@/components/site/install-app";
 import { DealsStrip } from "@/components/site/deals-strip";
 import { categories } from "@/config/store";
 
@@ -41,6 +42,7 @@ export function Header() {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <SearchForm className="mr-2 hidden w-56 md:block xl:w-72" />
+            <InstallApp />
             <CartButton />
           </div>
         </div>

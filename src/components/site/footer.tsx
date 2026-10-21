@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/site/logo";
+import { InstallApp } from "@/components/site/install-app";
 import { categories, paymentAccounts, shipping, store } from "@/config/store";
 
 export function Footer() {
@@ -12,6 +13,7 @@ export function Footer() {
           <p className="inline-flex w-fit items-center gap-2 rounded-full border border-volt/40 px-3 py-1 text-xs font-medium text-volt">
             <span className="size-1.5 rounded-full bg-volt" aria-hidden /> Authorised {store.authorisedDealerOf} dealer
           </p>
+          <InstallApp variant="row" className="max-w-xs" />
         </div>
         <div>
           <h3 className="eyebrow mb-4 text-white/50">Shop</h3>

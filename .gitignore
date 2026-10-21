@@ -13,3 +13,6 @@ next-env.d.ts
 .DS_Store
 *.log
 .claude
+
+# Locally generated production credentials — never commit
+ADMIN_CREDENTIALS*.txt

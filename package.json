@@ -16,7 +16,8 @@
     "db:seed:local": "wrangler d1 execute DB --local --file=db/seed.sql",
     "db:seed:remote": "wrangler d1 execute DB --remote --file=db/seed.sql",
     "setup:local": "bun run db:migrate:local && bun run db:seed:local",
-    "whatsapp:doc": "bun scripts/gen-whatsapp-doc.ts"
+    "whatsapp:doc": "bun scripts/gen-whatsapp-doc.ts",
+    "icons": "bun scripts/gen-icons.ts"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

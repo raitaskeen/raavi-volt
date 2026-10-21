@@ -50,9 +50,20 @@ Monochrome base (matte black · charcoal · white · paper white) with two elect
 - **Owner commands** from your personal WhatsApp: `orders`, `status`, `confirm`, `ship RV-… TCS 123`, `deliver`, `cancel`
 - Every message logged per order with free/template, delivered/read receipts, and the customer's own messages; one-tap **Send manually** fallback
 
+**Installable app (PWA)**
+- Install on Android, Windows, macOS, ChromeOS (Chrome / Edge / Samsung Internet) via an **Install app** button; guided *Add to Home Screen* / *Add to Dock* on iPhone, iPad and Mac Safari
+- Manifest with maskable icons and shortcuts (Shop, Deals, Track, Cart); share image for WhatsApp / Facebook link previews
+- Service worker (`public/sw.js`): hashed assets and product images from the device, network-first pages with an offline fallback; never touches admin, checkout, orders or API
+- Icons are generated dependency-free: `bun run icons`
+
+**Reliability**
+- Nightly Cron Trigger (02:15 PKT): releases stock from unpaid orders older than 72 h and prunes logs
+- `/api/health` for uptime monitors; error pages for store, admin and root; the edge cache falls back to the app on any error
+- Full go-live steps: [docs/GO_LIVE.md](docs/GO_LIVE.md)
+
 **Edge caching** (`worker.ts`, active on the custom domain)
 - Home, shop, product and info pages — and their client-navigation (RSC) payloads — are served from the Cloudflare Cache API: no rendering and no D1 work on a hit
-- Cache keys include a catalog version that a D1 trigger bumps on every product change (edits, prices, stock after an order), so changes appear instantly everywhere; stale copies are refreshed in the background
+- Cache keys include the deployment id and a catalog version that a D1 trigger bumps on every product change (edits, prices, stock after an order), so deploys and changes appear instantly everywhere; stale copies are refreshed in the background
 - Never cached: admin, cart, checkout, order pages, API; signed-in admins always see live pages; tracking params (`utm_*`, `fbclid`…) don't fragment the cache
 - `x-rv-cache: HIT | MISS | STALE` response header for checking
 
