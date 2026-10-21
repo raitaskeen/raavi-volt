@@ -4,7 +4,7 @@ Fill in what you can and send it over; anything marked 🔒 is a secret — **se
 (commands below) and never paste it into chat, email or the repo.
 
 ## 1. Business identity
-- [ ] Final store name — the site still says **Raavi Volt**; confirm, or rename to match the domain (e.g. “Amir Store”)
+- [x] Store name: **Raavi Volt** (on the amirstore.tech domain)
 - [x] Domain: **amirstore.tech** (add it to Cloudflare, then uncomment `routes` in `wrangler.jsonc`)
 - [x] Logo: keep the current electric bolt mark
 - [x] Address: 99-E, Street 3, Block E, near Dar-e-Arqam School, Defence Fort, Ghazi Road, Lahore
